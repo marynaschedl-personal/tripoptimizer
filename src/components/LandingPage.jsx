@@ -80,42 +80,30 @@ export default function LandingPage({ onSearch, loading, theme, onToggleTheme, o
             </button>
           </div>
 
-          {/* Trip Assistant Feature Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-            {/* Feature 1 */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
-              <div className="text-5xl mb-4">📋</div>
-              <h3 className="text-xl font-bold text-white mb-3">Smart Itineraries</h3>
-              <p className="text-white/60 text-sm">
-                Let Trip Assistant plan your entire journey. Flight schedules, hotel check-ins, activities—everything coordinated automatically.
-              </p>
+          {/* Trip Assistant Feature Bubbles */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+            {/* Bubble 1 */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-white/20 transition-colors text-center">
+              <div className="text-3xl mb-2">📋</div>
+              <h3 className="text-sm font-bold text-white">Smart Itineraries</h3>
             </div>
 
-            {/* Feature 2 */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
-              <div className="text-5xl mb-4">⚠️</div>
-              <h3 className="text-xl font-bold text-white mb-3">Conflict Detection</h3>
-              <p className="text-white/60 text-sm">
-                Automatically catch flight mismatches, hotel booking conflicts, and timing issues before they become problems.
-              </p>
+            {/* Bubble 2 */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-white/20 transition-colors text-center">
+              <div className="text-3xl mb-2">⚠️</div>
+              <h3 className="text-sm font-bold text-white">Conflict Detection</h3>
             </div>
 
-            {/* Feature 3 */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
-              <div className="text-5xl mb-4">😴</div>
-              <h3 className="text-xl font-bold text-white mb-3">Fatigue Optimization</h3>
-              <p className="text-white/60 text-sm">
-                Analyze flight durations, jet lag, and travel time. Trip Assistant warns you about tiring days and suggests rest days.
-              </p>
+            {/* Bubble 3 */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-white/20 transition-colors text-center">
+              <div className="text-3xl mb-2">😴</div>
+              <h3 className="text-sm font-bold text-white">Fatigue Analysis</h3>
             </div>
 
-            {/* Feature 4 */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
-              <div className="text-5xl mb-4">👨‍👩‍👧‍👦</div>
-              <h3 className="text-xl font-bold text-white mb-3">Family Mode</h3>
-              <p className="text-white/60 text-sm">
-                Special handling for family trips. Long flight warnings for kids, activity appropriateness checks, rest day planning.
-              </p>
+            {/* Bubble 4 */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:border-white/20 transition-colors text-center">
+              <div className="text-3xl mb-2">👨‍👩‍👧‍👦</div>
+              <h3 className="text-sm font-bold text-white">Family Mode</h3>
             </div>
           </div>
         </div>
