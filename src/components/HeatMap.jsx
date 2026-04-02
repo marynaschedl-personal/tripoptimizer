@@ -19,6 +19,15 @@ function SkeletonCell() {
   );
 }
 
+function formatAnxietyLevel(anxietyLevel) {
+  const labels = {
+    'not_stressful': 'Not Stressful',
+    'medium': 'Medium Stress',
+    'very_stressful': 'Very Stressful',
+  };
+  return labels[anxietyLevel] || anxietyLevel;
+}
+
 export default function HeatMap({
   searchParams,
   onSelectCell,
@@ -512,10 +521,10 @@ export default function HeatMap({
                         onContextMenu={e => handleCellRightClick(e, dep, ret, data)}
                         onTouchStart={() => handleTouchStart(dep, ret, data)}
                         onTouchEnd={handleTouchEnd}
-                        title={`${nights} night${nights > 1 ? 's' : ''} — €${data.totalCost.toLocaleString()}${anxietyAnalysis ? ` — ${anxietyAnalysis.anxietyLevel}` : ''}`}
+                        title={`${nights} night${nights > 1 ? 's' : ''} — €${data.totalCost.toLocaleString()}${anxietyAnalysis ? ` — ${formatAnxietyLevel(anxietyAnalysis.anxietyLevel)}` : ''}`}
                         role="button"
                         tabIndex={0}
-                        aria-label={`${formatDate(dep, 'short')} to ${formatDate(ret, 'short')}, ${nights} nights, €${data.totalCost}${anxietyAnalysis ? ` — ${anxietyAnalysis.anxietyLevel}` : ''}`}
+                        aria-label={`${formatDate(dep, 'short')} to ${formatDate(ret, 'short')}, ${nights} nights, €${data.totalCost}${anxietyAnalysis ? ` — ${formatAnxietyLevel(anxietyAnalysis.anxietyLevel)}` : ''}`}
                         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleCellClick(dep, ret, data); }}
                       >
                         {/* Recommendation badge (star) */}
