@@ -9,6 +9,9 @@ import {
   getColorForNormalized,
 } from '../data/mockData.js';
 import { batchFetchFlightPrices, clearFlightCache, getCacheAgeMinutes } from '../api/kiwiApi.js';
+import { analyzeTrip } from '../services/anxietyAnalyzer.js';
+import AnxietyBadge from './AnxietyBadge.jsx';
+import RecommendationBadge from './RecommendationBadge.jsx';
 
 function SkeletonCell() {
   return (
@@ -32,6 +35,11 @@ export default function HeatMap({
   const [useRealPrices, setUseRealPrices] = useState(true);
   const [dataFreshness, setDataFreshness] = useState(null);
   const [usingFallback, setUsingFallback] = useState(false);
+
+  // Anxiety analysis state
+  const [anxietyCache, setAnxietyCache] = useState({});
+  const [analyzingTop5, setAnalyzingTop5] = useState(false);
+  const [recommendedCell, setRecommendedCell] = useState(null);
 
   // Generate date combinations and initial grid
   const { departureDates, returnDates, mockGrid, minCost: mockMinCost, maxCost: mockMaxCost, totalCombinations } =
@@ -169,6 +177,58 @@ export default function HeatMap({
   // Determine which data to use
   const cellGrid = useRealPrices && Object.keys(flightData).length > 0 ? flightData : mockGrid;
 
+  // Analyze top 5 trips for anxiety score (background, non-blocking)
+  useEffect(() => {
+    if (!searchParams || !cellGrid || Object.keys(cellGrid).length === 0) {
+      return;
+    }
+
+    const analyzeTop5Trips = async () => {
+      try {
+        setAnalyzingTop5(true);
+
+        // Sort cells by cost and get top 5
+        const sortedCells = Object.entries(cellGrid)
+          .map(([key, data]) => ({ key, data, cost: data?.totalCost || Infinity }))
+          .sort((a, b) => a.cost - b.cost)
+          .slice(0, 5);
+
+        if (sortedCells.length === 0) {
+          setAnalyzingTop5(false);
+          return;
+        }
+
+        // Analyze each top 5 cell
+        const newCache = { ...anxietyCache };
+        let bestCell = null;
+        let bestScore = Infinity;
+
+        for (const { key, data } of sortedCells) {
+          if (!data || newCache[key]) continue; // Skip if already cached
+
+          const tripLength = searchParams.tripLength || daysBetween(searchParams.startDate, searchParams.endDate);
+          const analysis = analyzeTrip(data, searchParams, tripLength);
+          newCache[key] = analysis;
+
+          // Track the best (lowest score) option
+          if (analysis.score < bestScore) {
+            bestScore = analysis.score;
+            bestCell = key;
+          }
+        }
+
+        setAnxietyCache(newCache);
+        setRecommendedCell(bestCell);
+      } catch (err) {
+        console.error('Error analyzing trip anxiety:', err);
+      } finally {
+        setAnalyzingTop5(false);
+      }
+    };
+
+    analyzeTop5Trips();
+  }, [searchParams, cellGrid]);
+
   // Calculate min/max for color scaling
   const { minCost, maxCost, cheapestKey } = useMemo(() => {
     let minC = Infinity;
@@ -252,6 +312,12 @@ export default function HeatMap({
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
               <AlertCircle size={12} />
               Estimated prices
+            </span>
+          )}
+          {analyzingTop5 && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 animate-pulse">
+              <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+              Analyzing trips...
             </span>
           )}
         </div>
@@ -386,6 +452,9 @@ export default function HeatMap({
                     );
                   }
 
+                  const anxietyAnalysis = anxietyCache[key];
+                  const isRecommended = recommendedCell === key;
+
                   return (
                     <td
                       key={ret}
@@ -393,30 +462,44 @@ export default function HeatMap({
                     >
                       <div
                         className={clsx(
-                          'heatmap-cell w-[88px] h-[60px] rounded-lg flex flex-col items-center justify-center select-none',
+                          'heatmap-cell w-[88px] h-[60px] rounded-lg flex flex-col items-center justify-center select-none relative',
                           isStarred && 'starred',
+                          isRecommended && 'ring-2 ring-amber-400 dark:ring-amber-300',
                         )}
                         style={{ backgroundColor: bgColor }}
                         onClick={() => handleCellClick(dep, ret, data)}
                         onContextMenu={e => handleCellRightClick(e, dep, ret, data)}
                         onTouchStart={() => handleTouchStart(dep, ret, data)}
                         onTouchEnd={handleTouchEnd}
-                        title={`${nights} night${nights > 1 ? 's' : ''} — €${data.totalCost.toLocaleString()}`}
+                        title={`${nights} night${nights > 1 ? 's' : ''} — €${data.totalCost.toLocaleString()}${anxietyAnalysis ? ` — ${anxietyAnalysis.anxietyLevel}` : ''}`}
                         role="button"
                         tabIndex={0}
-                        aria-label={`${formatDate(dep, 'short')} to ${formatDate(ret, 'short')}, ${nights} nights, €${data.totalCost}`}
+                        aria-label={`${formatDate(dep, 'short')} to ${formatDate(ret, 'short')}, ${nights} nights, €${data.totalCost}${anxietyAnalysis ? ` — ${anxietyAnalysis.anxietyLevel}` : ''}`}
                         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleCellClick(dep, ret, data); }}
                       >
-                        {/* Best badge */}
-                        {isCheapest && (
+                        {/* Recommendation badge (star) */}
+                        {isRecommended && <RecommendationBadge isRecommended={true} />}
+
+                        {/* Best price badge */}
+                        {isCheapest && !isRecommended && (
                           <span className="absolute -top-2 -right-2 bg-green-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow uppercase tracking-wide z-10">
                             BEST
                           </span>
                         )}
-                        {/* Star indicator */}
+
+                        {/* Star indicator (favorited) */}
                         {isStarred && (
                           <span className="absolute -top-2 -left-2 text-amber-400 text-xs z-10 drop-shadow">⭐</span>
                         )}
+
+                        {/* Anxiety badge */}
+                        {anxietyAnalysis && (
+                          <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 z-20">
+                            <AnxietyBadge anxietyLevel={anxietyAnalysis.anxietyLevel} />
+                          </div>
+                        )}
+
+                        {/* Price and duration */}
                         <span className="text-white font-extrabold text-sm leading-tight drop-shadow">
                           €{data.totalCost.toLocaleString()}
                         </span>
