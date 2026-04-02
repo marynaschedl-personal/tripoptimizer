@@ -182,12 +182,12 @@ export default function HeatMap({
   // Determine which data to use
   const cellGrid = useRealPrices && Object.keys(flightData).length > 0 ? flightData : mockGrid;
 
-  // Notify parent when data is loaded
+  // Notify parent when data is loaded (only once when cellGrid is ready)
   useEffect(() => {
     if (onDataLoaded && Object.keys(cellGrid).length > 0) {
       onDataLoaded(cellGrid, anxietyCache);
     }
-  }, [cellGrid, anxietyCache, onDataLoaded]);
+  }, [cellGrid, onDataLoaded]);
 
   // Analyze top 5 trips for anxiety score (background, non-blocking)
   useEffect(() => {
