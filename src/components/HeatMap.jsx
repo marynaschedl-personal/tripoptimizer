@@ -48,8 +48,10 @@ export default function HeatMap({
       if (!searchParams) return { departureDates: [], returnDates: [], mockGrid: {}, minCost: 0, maxCost: 0, totalCombinations: 0 };
 
       const { startDate, endDate, adults, children } = searchParams;
+      console.log('HeatMap: Generating grid with searchParams:', { startDate, endDate, adults, children });
       const totalTravelers = (adults || 2) + (children || 0);
       const totalDays = daysBetween(startDate, endDate);
+      console.log('HeatMap: totalDays =', totalDays, 'totalTravelers =', totalTravelers);
 
       const maxRows = Math.min(8, Math.max(0, totalDays - 1));
       const departures = generateDateRange(startDate, maxRows);
@@ -268,6 +270,17 @@ export default function HeatMap({
     return (
       <div className="p-8 text-center text-gray-400 dark:text-gray-500 text-sm">
         Run a search to see the price heat map.
+      </div>
+    );
+  }
+
+  // Debug: Log grid status
+  if (Object.keys(cellGrid).length === 0) {
+    console.warn('HeatMap: cellGrid is empty. SearchParams:', searchParams, 'mockGrid:', mockGrid);
+    return (
+      <div className="p-8 text-center text-gray-400 dark:text-gray-500 text-sm">
+        <p>No trip combinations found for these dates.</p>
+        <p className="text-xs mt-2">Try adjusting your date range (minimum 2 nights).</p>
       </div>
     );
   }

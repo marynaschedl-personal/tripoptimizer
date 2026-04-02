@@ -10,7 +10,7 @@ import { useSearchTree } from './hooks/useSearchTree.js';
 import { DESTINATION_CITIES, ORIGIN_CITIES } from './data/mockData.js';
 
 // ─── Results Page ─────────────────────────────────────────────────────────────
-function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, onToggleStar, theme, onToggleTheme, onSelectSearch, recommendation, onOpenRecommendedModal }) {
+function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, onToggleStar, theme, onToggleTheme, onSelectSearch, recommendation, onOpenRecommendedModal, onRecommendationFound }) {
   const destCity   = DESTINATION_CITIES.find(c => c.code === searchParams.destination);
   const originCity = ORIGIN_CITIES.find(c => c.code === searchParams.origin);
   const travelers  = (searchParams.adults || 2) + (searchParams.children || 0);
