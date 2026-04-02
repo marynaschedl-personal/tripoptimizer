@@ -1,4 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import Header from './components/Header.jsx';
 import SearchForm from './components/SearchForm.jsx';
 import LandingPage from './components/LandingPage.jsx';
@@ -9,11 +11,106 @@ import SearchTree from './components/SearchTree.jsx';
 import { useSearchTree } from './hooks/useSearchTree.js';
 import { DESTINATION_CITIES, ORIGIN_CITIES } from './data/mockData.js';
 
-// ─── Results Page ─────────────────────────────────────────────────────────────
-function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, onToggleStar, theme, onToggleTheme, onSelectSearch, recommendation, onOpenRecommendedModal, onRecommendationFound }) {
-  const destCity   = DESTINATION_CITIES.find(c => c.code === searchParams.destination);
-  const originCity = ORIGIN_CITIES.find(c => c.code === searchParams.origin);
-  const travelers  = (searchParams.adults || 2) + (searchParams.children || 0);
+// ─── Landing Page Route ────────────────────────────────────────────────────────
+function LandingPageRoute({ theme, onToggleTheme, onSearch, onViewTimeline }) {
+  return (
+    <LandingPage
+      onSearch={onSearch}
+      theme={theme}
+      onToggleTheme={onToggleTheme}
+      onViewTimeline={onViewTimeline}
+    />
+  );
+}
+
+// ─── Timeline Route ────────────────────────────────────────────────────────────
+function TimelineRoute({ theme, onToggleTheme }) {
+  const navigate = useNavigate();
+
+  return (
+    <div>
+      <Header
+        theme={theme}
+        onToggleTheme={onToggleTheme}
+        starredCount={0}
+        onOpenComparison={() => {}}
+        onLogoClick={() => navigate('/')}
+      />
+      <TripAssistantDemo />
+      <div className="text-center py-4">
+        <button
+          onClick={() => navigate('/')}
+          className="text-indigo-600 dark:text-indigo-400 text-sm font-semibold hover:underline"
+        >
+          ← Back to Search
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Results Page Route ────────────────────────────────────────────────────────
+function ResultsPageRoute({
+  starredCombos,
+  onToggleStar,
+  theme,
+  onToggleTheme,
+  onSelectSearch,
+}) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [selectedCell, setSelectedCell] = useState(null);
+  const [recommendation, setRecommendation] = useState(null);
+
+  // Parse URL parameters
+  const searchParamsObj = {
+    origin: searchParams.get('origin'),
+    destination: searchParams.get('destination'),
+    startDate: searchParams.get('startDate'),
+    endDate: searchParams.get('endDate'),
+    adults: parseInt(searchParams.get('adults')) || 2,
+    children: parseInt(searchParams.get('children')) || 0,
+  };
+
+  if (!searchParamsObj.origin || !searchParamsObj.destination || !searchParamsObj.startDate || !searchParamsObj.endDate) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Invalid search parameters</p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            ← Back to Search
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const destCity = DESTINATION_CITIES.find(c => c.code === searchParamsObj.destination);
+  const originCity = ORIGIN_CITIES.find(c => c.code === searchParamsObj.origin);
+  const travelers = (searchParamsObj.adults || 2) + (searchParamsObj.children || 0);
+
+  const isStarred = selectedCell
+    ? starredCombos.some(
+      s => s.departureDate === selectedCell.departureDate && s.returnDate === selectedCell.returnDate,
+    )
+    : false;
+
+  const handleRecommendationFound = useCallback((rec) => {
+    setRecommendation(rec);
+  }, []);
+
+  const handleOpenRecommendedModal = useCallback(() => {
+    if (recommendation) {
+      setSelectedCell({
+        departureDate: recommendation.departureDate,
+        returnDate: recommendation.returnDate,
+        cellData: recommendation.cellData,
+      });
+    }
+  }, [recommendation]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -22,7 +119,7 @@ function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, o
         onToggleTheme={onToggleTheme}
         starredCount={starredCombos.length}
         onOpenComparison={() => {}}
-        onLogoClick={onNewSearch}
+        onLogoClick={() => navigate('/')}
       />
 
       <div className="flex">
@@ -46,7 +143,7 @@ function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, o
                 </div>
               </div>
               <button
-                onClick={onOpenRecommendedModal}
+                onClick={handleOpenRecommendedModal}
                 className="flex-shrink-0 px-4 py-2 bg-white dark:bg-gray-900 text-indigo-600 dark:text-indigo-400 rounded-lg font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-indigo-200 dark:border-indigo-700"
               >
                 See details ↗
@@ -63,13 +160,13 @@ function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, o
                 {destCity?.flag} {destCity?.name}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {searchParams.startDate} – {searchParams.endDate}
+                {searchParamsObj.startDate} – {searchParamsObj.endDate}
                 {' · '}
                 {travelers} traveller{travelers !== 1 ? 's' : ''}
               </p>
             </div>
             <button
-              onClick={onNewSearch}
+              onClick={() => navigate('/')}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 text-sm font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
             >
               ← Modify Search
@@ -79,13 +176,13 @@ function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, o
           {/* Heat map card */}
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <HeatMap
-              searchParams={searchParams}
-              onSelectCell={onSelectCell}
+              searchParams={searchParamsObj}
+              onSelectCell={setSelectedCell}
               starredCombos={starredCombos}
               onToggleStar={onToggleStar}
               minHotelStars={3}
               travelers={travelers}
-              onRecommendationFound={onRecommendationFound}
+              onRecommendationFound={handleRecommendationFound}
             />
           </div>
 
@@ -94,21 +191,27 @@ function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, o
           </p>
         </div>
       </div>
+
+      {/* Detail Modal */}
+      <DetailModal
+        isOpen={!!selectedCell}
+        onClose={() => setSelectedCell(null)}
+        cellData={selectedCell?.cellData}
+        searchParams={searchParamsObj}
+        onToggleStar={onToggleStar}
+        isStarred={isStarred}
+      />
     </div>
   );
 }
 
-// ─── App Root ─────────────────────────────────────────────────────────────────
+// ─── Main App Component ────────────────────────────────────────────────────────
 export default function App() {
   const [theme, setTheme] = useState(() => {
     try { return localStorage.getItem('to-theme') || 'light'; } catch { return 'light'; }
   });
-  const [view, setView] = useState('landing');
-  const [searchParams, setSearchParams] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [selectedCell, setSelectedCell] = useState(null);
   const [starredCombos, setStarredCombos] = useState([]);
-  const [recommendation, setRecommendation] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { addSearch } = useSearchTree();
 
   // Sync dark class on <html>
@@ -117,23 +220,25 @@ export default function App() {
     try { localStorage.setItem('to-theme', theme); } catch {}
   }, [theme]);
 
-  // Scroll to top when view changes
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [view]);
-
   const toggleTheme = useCallback(() => {
     setTheme(t => (t === 'dark' ? 'light' : 'dark'));
   }, []);
 
   const handleSearch = useCallback((params) => {
     setLoading(true);
-    setRecommendation(null);
     addSearch(params);
     setTimeout(() => {
-      setSearchParams(params);
+      // Navigate to results with URL parameters
+      const queryParams = new URLSearchParams({
+        origin: params.origin,
+        destination: params.destination,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        adults: params.adults || 2,
+        children: params.children || 0,
+      }).toString();
+      window.location.href = `/results?${queryParams}`;
       setLoading(false);
-      setView('results');
     }, 700);
   }, [addSearch]);
 
@@ -142,7 +247,7 @@ export default function App() {
   }, [handleSearch]);
 
   const handleViewTimeline = useCallback(() => {
-    setView('timeline');
+    window.location.href = '/assistant';
   }, []);
 
   const handleToggleStar = useCallback(({ departureDate, returnDate, cellData }) => {
@@ -154,79 +259,45 @@ export default function App() {
     });
   }, []);
 
-  const handleRecommendationFound = useCallback((rec) => {
-    setRecommendation(rec);
-  }, []);
-
-  const handleOpenRecommendedModal = useCallback(() => {
-    if (recommendation) {
-      setSelectedCell({
-        departureDate: recommendation.departureDate,
-        returnDate: recommendation.returnDate,
-        cellData: recommendation.cellData,
-      });
-    }
-  }, [recommendation]);
-
-  const isStarred = selectedCell
-    ? starredCombos.some(
-        s => s.departureDate === selectedCell.departureDate && s.returnDate === selectedCell.returnDate,
-      )
-    : false;
-
   return (
-    <div className="font-sans">
-      {view === 'landing' ? (
-        <LandingPage
-          onSearch={handleSearch}
-          loading={loading}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-          onViewTimeline={handleViewTimeline}
-        />
-      ) : view === 'timeline' ? (
-        <div>
-          <Header
-            theme={theme}
-            onToggleTheme={toggleTheme}
-            starredCount={0}
-            onOpenComparison={() => {}}
-            onLogoClick={() => setView('landing')}
+    <BrowserRouter>
+      <div className="font-sans">
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <LandingPageRoute
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                onSearch={handleSearch}
+                onViewTimeline={handleViewTimeline}
+              />
+            }
           />
-          <TripAssistantDemo />
-          <div className="text-center py-4">
-            <button
-              onClick={() => setView('landing')}
-              className="text-indigo-600 dark:text-indigo-400 text-sm font-semibold hover:underline"
-            >
-              ← Back to Search
-            </button>
-          </div>
-        </div>
-      ) : (
-        <ResultsPage
-          searchParams={searchParams}
-          onNewSearch={() => setView('landing')}
-          onSelectCell={setSelectedCell}
-          starredCombos={starredCombos}
-          onToggleStar={handleToggleStar}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-          onSelectSearch={handleSelectSearch}
-          recommendation={recommendation}
-          onOpenRecommendedModal={handleOpenRecommendedModal}
-          onRecommendationFound={handleRecommendationFound}
-        />
-      )}
-
-      <DetailModal
-        isOpen={!!selectedCell}
-        onClose={() => setSelectedCell(null)}
-        cellData={selectedCell?.cellData}
-        searchParams={searchParams}
-        onToggleStar={handleToggleStar}
-        isStarred={isStarred}
-      />
-    </div>
+          <Route
+            path="/results"
+            element={
+              <ResultsPageRoute
+                starredCombos={starredCombos}
+                onToggleStar={handleToggleStar}
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                onSelectSearch={handleSelectSearch}
+              />
+            }
+          />
+          <Route
+            path="/assistant"
+            element={
+              <TimelineRoute
+                theme={theme}
+                onToggleTheme={toggleTheme}
+              />
+            }
+          />
+        </Routes>
+      </div>
+      <Analytics />
+    </BrowserRouter>
   );
 }
