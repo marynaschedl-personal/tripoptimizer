@@ -9,7 +9,7 @@ const CITY_ALIASES = {
   'london': 'LHR', 'barcelona': 'BCN', 'rome': 'FCO', 'amsterdam': 'AMS',
   'madrid': 'MAD', 'lisbon': 'LIS', 'vienna': 'VIE', 'prague': 'PRG',
   'dublin': 'DUB', 'athens': 'ATH', 'copenhagen': 'CPH', 'budapest': 'BUD',
-  'warsaw': 'WAW', 'dubai': 'DXB', 'bangkok': 'BKK', 'tokyo': 'NRT',
+  'warsaw': 'WAW', 'dubai': 'DXB', 'bangkok': 'BKK', 'tokyo': 'HND', 'narita': 'NRT',
   'paris': 'CDG', 'frankfurt': 'FRA', 'zurich': 'ZRH', 'brussels': 'BRU',
   'milan': 'MXP', 'haneda': 'HND', 'munich': 'MUC'
 };
@@ -78,7 +78,7 @@ function parseDate(dateStr, currentYear = new Date().getFullYear()) {
  * Extract date range (start-end)
  */
 function extractDateRange(text) {
-  // Format: "April 10-22", "Apr 10-22", "10-22 April"
+  // Format: "10-22 April" or "10-22 Apr"
   const rangeMatch = text.match(/(\d{1,2})\s*\-\s*(\d{1,2})\s+(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december)/i);
   if (rangeMatch) {
     const startDay = rangeMatch[1].padStart(2, '0');
@@ -91,13 +91,39 @@ function extractDateRange(text) {
     };
   }
 
-  // Format with year: "April 10-22, 2026"
+  // Format: "April 10-22" or "Apr 10-22" (month first)
+  const monthFirstMatch = text.match(/(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december)\s+(\d{1,2})\s*\-\s*(\d{1,2})/i);
+  if (monthFirstMatch) {
+    const month = MONTH_MAP[monthFirstMatch[1].toLowerCase()].toString().padStart(2, '0');
+    const startDay = monthFirstMatch[2].padStart(2, '0');
+    const endDay = monthFirstMatch[3].padStart(2, '0');
+    const year = new Date().getFullYear();
+    return {
+      startDate: `${year}-${month}-${startDay}`,
+      endDate: `${year}-${month}-${endDay}`
+    };
+  }
+
+  // Format with year: "April 10-22, 2026" or "10-22 April 2026"
   const rangeWithYearMatch = text.match(/(\d{1,2})\s*\-\s*(\d{1,2})\s+(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december)[,\s]+(\d{4})/i);
   if (rangeWithYearMatch) {
     const startDay = rangeWithYearMatch[1].padStart(2, '0');
     const endDay = rangeWithYearMatch[2].padStart(2, '0');
     const month = MONTH_MAP[rangeWithYearMatch[3].toLowerCase()].toString().padStart(2, '0');
     const year = rangeWithYearMatch[4];
+    return {
+      startDate: `${year}-${month}-${startDay}`,
+      endDate: `${year}-${month}-${endDay}`
+    };
+  }
+
+  // Format with year, month first: "April 10-22, 2026"
+  const monthFirstYearMatch = text.match(/(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december)\s+(\d{1,2})\s*\-\s*(\d{1,2})[,\s]+(\d{4})/i);
+  if (monthFirstYearMatch) {
+    const month = MONTH_MAP[monthFirstYearMatch[1].toLowerCase()].toString().padStart(2, '0');
+    const startDay = monthFirstYearMatch[2].padStart(2, '0');
+    const endDay = monthFirstYearMatch[3].padStart(2, '0');
+    const year = monthFirstYearMatch[4];
     return {
       startDate: `${year}-${month}-${startDay}`,
       endDate: `${year}-${month}-${endDay}`
@@ -167,8 +193,8 @@ export function parseNaturalLanguage(input, context = {}) {
     rawInput: input
   };
 
-  // Extract cities
-  const parts = text.split(/(?:to|from|→|-&gt;|and)/);
+  // Extract cities - use word boundaries to avoid matching "to" in "Tokyo"
+  const parts = text.split(/\b(?:to|from|and)\b|→|-&gt;/i);
   if (parts.length >= 2) {
     result.origin = extractCity(parts[0]);
     result.destination = extractCity(parts[1]);
