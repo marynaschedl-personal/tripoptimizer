@@ -150,7 +150,7 @@ export default function AnxietyReport({ anxietyData, isLoading }) {
       {recommendations && recommendations.length > 0 && (
         <div>
           <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3 uppercase tracking-wide">
-            ✓ What's Good About This Trip
+            What's Good About This Trip
           </h4>
           <div className="space-y-2">
             {recommendations.map((recommendation, idx) => (

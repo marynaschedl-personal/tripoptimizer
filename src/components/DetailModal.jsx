@@ -322,7 +322,7 @@ export default function DetailModal({ isOpen, onClose, cellData, searchParams, o
                 <p className="font-bold text-lg">€{inboundPrice}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-2">
-                <p className="text-xs opacity-70">Hotel ({nights}n)</p>
+                <p className="text-xs opacity-70">Hotel ({nights} nights)</p>
                 <p className="font-bold text-lg">€{cheapestHotelCost}</p>
               </div>
             </div>
