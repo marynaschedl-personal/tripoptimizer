@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
+import clsx from 'clsx';
 import Header from './components/Header.jsx';
 import SearchForm from './components/SearchForm.jsx';
 import LandingPage from './components/LandingPage.jsx';
@@ -8,8 +9,20 @@ import HeatMap from './components/HeatMap.jsx';
 import DetailModal from './components/DetailModal.jsx';
 import TripAssistantDemo from './pages/TripAssistantDemo.jsx';
 import SearchTree from './components/SearchTree.jsx';
+import StepForm from './components/SmartForm/StepForm.jsx';
 import { useSearchTree } from './hooks/useSearchTree.js';
 import { DESTINATION_CITIES, ORIGIN_CITIES } from './data/mockData.js';
+
+// ─── Search Route (Multi-step form) ────────────────────────────────────────────
+function SearchRoute({ theme, onToggleTheme, onSearch }) {
+  return (
+    <StepForm
+      onSearch={onSearch}
+      theme={theme}
+      onToggleTheme={onToggleTheme}
+    />
+  );
+}
 
 // ─── Landing Page Route ────────────────────────────────────────────────────────
 function LandingPageRoute({ theme, onToggleTheme, onSearch, onViewTimeline }) {
@@ -61,6 +74,7 @@ function ResultsPageRoute({
   const [searchParams] = useSearchParams();
   const [selectedCell, setSelectedCell] = useState(null);
   const [recommendation, setRecommendation] = useState(null);
+  const [sortMode, setSortMode] = useState('cheapest');
 
   // Parse URL parameters
   const searchParamsObj = {
@@ -71,6 +85,15 @@ function ResultsPageRoute({
     adults: parseInt(searchParams.get('adults')) || 2,
     children: parseInt(searchParams.get('children')) || 0,
   };
+
+  // Parse preference weights from URL
+  const preferenceWeights = {};
+  const budgetVsComfort = searchParams.get('budgetVsComfort');
+  const earlyMorningOk = searchParams.get('earlyMorningOk');
+  const packedVsRelaxed = searchParams.get('packedVsRelaxed');
+  if (budgetVsComfort !== null) preferenceWeights.budgetVsComfort = parseInt(budgetVsComfort);
+  if (earlyMorningOk !== null) preferenceWeights.earlyMorningOk = parseInt(earlyMorningOk);
+  if (packedVsRelaxed !== null) preferenceWeights.packedVsRelaxed = parseInt(packedVsRelaxed);
 
   if (!searchParamsObj.origin || !searchParamsObj.destination || !searchParamsObj.startDate || !searchParamsObj.endDate) {
     return (
@@ -173,6 +196,28 @@ function ResultsPageRoute({
             </button>
           </div>
 
+          {/* Sort tab bar */}
+          <div className="flex gap-2 mb-6">
+            {[
+              { key: 'cheapest', label: '💰 Cheapest' },
+              { key: 'bestValue', label: '⭐ Best Value' },
+              { key: 'leastStressful', label: '🟢 Least Stressful' },
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setSortMode(tab.key)}
+                className={clsx(
+                  'px-4 py-2 rounded-lg text-sm font-semibold transition-colors',
+                  sortMode === tab.key
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
           {/* Heat map card */}
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
             <HeatMap
@@ -183,6 +228,7 @@ function ResultsPageRoute({
               minHotelStars={3}
               travelers={travelers}
               onRecommendationFound={handleRecommendationFound}
+              preferenceWeights={Object.keys(preferenceWeights).length > 0 ? preferenceWeights : undefined}
             />
           </div>
 
@@ -236,6 +282,9 @@ export default function App() {
         endDate: params.endDate,
         adults: params.adults || 2,
         children: params.children || 0,
+        ...(params.budgetVsComfort !== undefined && { budgetVsComfort: params.budgetVsComfort }),
+        ...(params.earlyMorningOk !== undefined && { earlyMorningOk: params.earlyMorningOk }),
+        ...(params.packedVsRelaxed !== undefined && { packedVsRelaxed: params.packedVsRelaxed }),
       }).toString();
       window.location.href = `/results?${queryParams}`;
       setLoading(false);
@@ -271,6 +320,16 @@ export default function App() {
                 onToggleTheme={toggleTheme}
                 onSearch={handleSearch}
                 onViewTimeline={handleViewTimeline}
+              />
+            }
+          />
+          <Route
+            path="/search"
+            element={
+              <SearchRoute
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                onSearch={handleSearch}
               />
             }
           />

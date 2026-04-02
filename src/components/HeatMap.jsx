@@ -27,6 +27,7 @@ export default function HeatMap({
   minHotelStars,
   travelers,
   onRecommendationFound,
+  preferenceWeights,
 }) {
   const longPressTimer = useRef(null);
   const [flightData, setFlightData] = useState({});
@@ -210,7 +211,7 @@ export default function HeatMap({
           if (!data || newCache[key]) continue; // Skip if already cached
 
           const tripLength = searchParams.tripLength || daysBetween(searchParams.startDate, searchParams.endDate);
-          const analysis = analyzeTrip(data, searchParams, tripLength);
+          const analysis = analyzeTrip(data, searchParams, tripLength, preferenceWeights);
           newCache[key] = analysis;
 
           // Track the best (lowest score) option

@@ -9,9 +9,10 @@
  * @param {Object} cellData - flight + hotel combination from HeatMap
  * @param {Object} searchParams - search parameters including tripLength
  * @param {number} tripLength - duration of trip in days (derived from dates or explicitly set)
+ * @param {Object} preferenceWeights - optional user preferences (budgetVsComfort, earlyMorningOk, packedVsRelaxed)
  * @returns {Object} - anxiety analysis with score, level, factors, warnings, recommendations
  */
-export function analyzeTrip(cellData, searchParams, tripLength) {
+export function analyzeTrip(cellData, searchParams, tripLength, preferenceWeights = {}) {
   if (!cellData || !searchParams) {
     return getDefaultAnalysis();
   }
@@ -21,8 +22,34 @@ export function analyzeTrip(cellData, searchParams, tripLength) {
   const complexity = calculateComplexity(cellData);
   const restPenalty = calculateRestPenalty(cellData, tripLength);
 
+  // Apply preference-based multipliers if provided
+  let finalFatigueRisk = fatigueRisk;
+  let finalConflictRisk = conflictRisk;
+  let finalComplexity = complexity;
+  let finalRestPenalty = restPenalty;
+
+  if (Object.keys(preferenceWeights).length > 0) {
+    const { budgetVsComfort = 50, earlyMorningOk = 50, packedVsRelaxed = 50 } = preferenceWeights;
+
+    // earlyMorningOk: 0 = needs flexibility (penalize fatigue/conflict), 100 = loves early flights
+    // If user needs flexibility (low value), penalize more
+    const earlyMultiplier = 1 + (1 - earlyMorningOk / 100) * 0.6; // max 1.6x penalty
+    finalFatigueRisk *= earlyMultiplier;
+    finalConflictRisk *= earlyMultiplier;
+
+    // packedVsRelaxed: 0 = relaxed pace, 100 = packed schedule
+    // If user wants packed (high value), penalize rest penalty more (they're rushing)
+    const pacingMultiplier = 1 + (packedVsRelaxed / 100) * 0.5; // max 1.5x penalty
+    finalRestPenalty *= pacingMultiplier;
+
+    // budgetVsComfort: 0 = budget focused, 100 = comfort focused
+    // If user cares about comfort (high value), penalize complexity more (they want smooth experience)
+    const comfortMultiplier = 1 + (budgetVsComfort / 100) * 0.4; // max 1.4x penalty
+    finalComplexity *= comfortMultiplier;
+  }
+
   // Weighted score calculation
-  const score = (fatigueRisk * 0.4) + (conflictRisk * 0.3) + (complexity * 0.2) + (restPenalty * 0.1);
+  const score = (finalFatigueRisk * 0.4) + (finalConflictRisk * 0.3) + (finalComplexity * 0.2) + (finalRestPenalty * 0.1);
 
   // Clamp score to 0.0-1.0
   const clampedScore = Math.min(1.0, Math.max(0.0, score));
