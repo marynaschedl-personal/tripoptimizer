@@ -75,7 +75,6 @@ function ResultsPageRoute({
   const [selectedCell, setSelectedCell] = useState(null);
   const [recommendation, setRecommendation] = useState(null);
   const [sortMode, setSortMode] = useState('cheapest');
-  const [minPrices, setMinPrices] = useState({});
 
   // Parse URL parameters
   const searchParamsObj = {
@@ -135,42 +134,6 @@ function ResultsPageRoute({
       });
     }
   }, [recommendation]);
-
-  const handleDataLoaded = useCallback((cellGrid, anxietyCache) => {
-    if (!cellGrid || Object.keys(cellGrid).length === 0) return;
-
-    // Calculate min prices for each sort mode
-    const cells = Object.entries(cellGrid).map(([key, data]) => ({
-      key,
-      cost: data?.totalCost || Infinity,
-      anxiety: anxietyCache[key]?.score || Infinity,
-    }));
-
-    // Cheapest: lowest cost
-    const cheapestMin = Math.min(...cells.map(c => c.cost));
-
-    // Best Value: best anxiety-to-cost ratio (we'll sort by a combined score)
-    const bestValueMin = Math.min(
-      ...cells.map(c => {
-        if (c.anxiety === Infinity || c.cost === Infinity) return Infinity;
-        // Normalize: anxiety (0-1) + cost/1000 (rough normalization)
-        return c.anxiety + c.cost / 1000;
-      })
-    );
-
-    // Least Stressful: lowest anxiety score (cost of the least stressful trip)
-    const leastStressfulCell = cells.reduce((best, cell) => {
-      if (cell.anxiety === Infinity) return best;
-      return cell.anxiety < (best.anxiety || Infinity) ? cell : best;
-    }, {});
-    const leastStressfulMin = leastStressfulCell.cost || Infinity;
-
-    setMinPrices({
-      cheapest: cheapestMin,
-      bestValue: cellGrid[cells.find(c => c.anxiety + c.cost / 1000 === bestValueMin)?.key]?.totalCost || Infinity,
-      leastStressful: leastStressfulMin,
-    });
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -234,37 +197,25 @@ function ResultsPageRoute({
           </div>
 
           {/* Sort tab bar */}
-          <div className="flex gap-2 mb-6 flex-wrap">
+          <div className="flex gap-2 mb-6">
             {[
               { key: 'cheapest', label: '💰 Cheapest' },
               { key: 'bestValue', label: '⭐ Best Value' },
               { key: 'leastStressful', label: '🟢 Least Stressful' },
-            ].map(tab => {
-              const price = minPrices[tab.key];
-              const priceDisplay = price && price !== Infinity ? `€${Math.round(price)}` : '';
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => setSortMode(tab.key)}
-                  className={clsx(
-                    'px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2',
-                    sortMode === tab.key
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  )}
-                >
-                  <span>{tab.label}</span>
-                  {priceDisplay && (
-                    <span className={clsx(
-                      'text-xs font-bold ml-1',
-                      sortMode === tab.key ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-500'
-                    )}>
-                      {priceDisplay}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setSortMode(tab.key)}
+                className={clsx(
+                  'px-4 py-2 rounded-lg text-sm font-semibold transition-colors',
+                  sortMode === tab.key
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           {/* Heat map card */}
@@ -278,7 +229,6 @@ function ResultsPageRoute({
               travelers={travelers}
               onRecommendationFound={handleRecommendationFound}
               preferenceWeights={Object.keys(preferenceWeights).length > 0 ? preferenceWeights : undefined}
-              onDataLoaded={handleDataLoaded}
             />
           </div>
 
