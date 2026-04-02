@@ -92,6 +92,11 @@ export default function App() {
     try { localStorage.setItem('to-theme', theme); } catch {}
   }, [theme]);
 
+  // Scroll to top when view changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view]);
+
   const toggleTheme = useCallback(() => {
     setTheme(t => (t === 'dark' ? 'light' : 'dark'));
   }, []);
