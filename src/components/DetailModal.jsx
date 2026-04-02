@@ -1,10 +1,12 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   X, Star, StarOff, Clock, Plane, Hotel, Share2, ExternalLink,
   TrendingDown, ChevronRight,
 } from 'lucide-react';
 import clsx from 'clsx';
-import { formatDate, OUTBOUND_FLIGHTS } from '../data/mockData.js';
+import { formatDate, OUTBOUND_FLIGHTS, daysBetween } from '../data/mockData.js';
+import { analyzeTrip } from '../services/anxietyAnalyzer.js';
+import AnxietyReport from './AnxietyReport.jsx';
 
 /**
  * Format date from YYYY-MM-DD to DD-MM-YYYY for Kiwi.com
@@ -166,7 +168,10 @@ function HotelCard({ hotel, nights, destination, departureDate, returnDate }) {
   );
 }
 
-export default function DetailModal({ isOpen, onClose, cellData, searchParams, onToggleStar, isStarred }) {
+export default function DetailModal({ isOpen, onClose, cellData, searchParams, onToggleStar, isStarred, anxietyCache }) {
+  const [anxietyReport, setAnxietyReport] = useState(null);
+  const [loadingAnxiety, setLoadingAnxiety] = useState(false);
+
   const handleEsc = useCallback((e) => {
     if (e.key === 'Escape') onClose();
   }, [onClose]);
@@ -181,6 +186,40 @@ export default function DetailModal({ isOpen, onClose, cellData, searchParams, o
       document.body.style.overflow = '';
     };
   }, [isOpen, handleEsc]);
+
+  // Analyze anxiety when modal opens or cellData changes
+  useEffect(() => {
+    if (!isOpen || !cellData || !searchParams) {
+      setAnxietyReport(null);
+      return;
+    }
+
+    const analyzeAnxiety = async () => {
+      const { departureDate, returnDate } = cellData;
+      const cellKey = `${departureDate}__${returnDate}`;
+
+      // Check if already cached (from HeatMap analysis)
+      if (anxietyCache && anxietyCache[cellKey]) {
+        setAnxietyReport(anxietyCache[cellKey]);
+        return;
+      }
+
+      // Analyze on demand if not cached
+      try {
+        setLoadingAnxiety(true);
+        const tripLength = searchParams.tripLength || daysBetween(searchParams.startDate, searchParams.endDate);
+        const analysis = analyzeTrip(cellData, searchParams, tripLength);
+        setAnxietyReport(analysis);
+      } catch (err) {
+        console.error('Error analyzing trip anxiety:', err);
+        setAnxietyReport(null);
+      } finally {
+        setLoadingAnxiety(false);
+      }
+    };
+
+    analyzeAnxiety();
+  }, [isOpen, cellData, searchParams, anxietyCache]);
 
   if (!isOpen || !cellData) return null;
 
@@ -288,6 +327,11 @@ export default function DetailModal({ isOpen, onClose, cellData, searchParams, o
               </div>
             </div>
           </div>
+
+          {/* Anxiety Analysis Report */}
+          {anxietyReport && (
+            <AnxietyReport anxietyData={anxietyReport} isLoading={loadingAnxiety} />
+          )}
 
           {/* Outbound flight */}
           <div>
