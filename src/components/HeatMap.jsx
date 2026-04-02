@@ -28,6 +28,8 @@ export default function HeatMap({
   travelers,
   onRecommendationFound,
   preferenceWeights,
+  sortMode,
+  searchNights,
 }) {
   const longPressTimer = useRef(null);
   const [flightData, setFlightData] = useState({});
@@ -463,6 +465,16 @@ export default function HeatMap({
                   const isCheapest = key === cheapestKey;
                   const normalized = data ? (data.totalCost - minCost) / costRange : 0;
                   const bgColor = data ? getColorForNormalized(normalized) : null;
+                  const isDifferentDuration = searchNights && nights !== searchNights;
+
+                  // Filter cells when exactDuration tab is selected
+                  if (sortMode === 'exactDuration' && isDifferentDuration) {
+                    return (
+                      <td key={ret} className="p-1.5 border-b border-r border-gray-100 dark:border-gray-700">
+                        <div className="w-[88px] h-[60px] rounded-lg bg-gray-100 dark:bg-gray-800 opacity-20" />
+                      </td>
+                    );
+                  }
 
                   if (isDisabled) {
                     return (
@@ -493,6 +505,7 @@ export default function HeatMap({
                           'heatmap-cell w-[88px] h-[60px] rounded-lg flex flex-col items-center justify-center select-none relative',
                           isStarred && 'starred',
                           isRecommended && 'ring-2 ring-amber-400 dark:ring-amber-300',
+                          isDifferentDuration && sortMode !== 'exactDuration' && 'opacity-60',
                         )}
                         style={{ backgroundColor: bgColor }}
                         onClick={() => handleCellClick(dep, ret, data)}
@@ -534,6 +547,9 @@ export default function HeatMap({
                         <span className="text-white/80 text-[10px] font-medium mt-0.5 drop-shadow">
                           {nights}n
                         </span>
+                        {isDifferentDuration && searchNights && (
+                          <span className="text-white/60 text-[9px]">≠ {searchNights}n</span>
+                        )}
                       </div>
                     </td>
                   );

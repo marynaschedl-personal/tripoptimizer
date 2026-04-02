@@ -11,7 +11,7 @@ import TripAssistantDemo from './pages/TripAssistantDemo.jsx';
 import SearchTree from './components/SearchTree.jsx';
 import StepForm from './components/SmartForm/StepForm.jsx';
 import { useSearchTree } from './hooks/useSearchTree.js';
-import { DESTINATION_CITIES, ORIGIN_CITIES } from './data/mockData.js';
+import { DESTINATION_CITIES, ORIGIN_CITIES, daysBetween } from './data/mockData.js';
 
 // ─── Search Route (Multi-step form) ────────────────────────────────────────────
 function SearchRoute({ theme, onToggleTheme, onSearch }) {
@@ -94,6 +94,12 @@ function ResultsPageRoute({
   if (budgetVsComfort !== null) preferenceWeights.budgetVsComfort = parseInt(budgetVsComfort);
   if (earlyMorningOk !== null) preferenceWeights.earlyMorningOk = parseInt(earlyMorningOk);
   if (packedVsRelaxed !== null) preferenceWeights.packedVsRelaxed = parseInt(packedVsRelaxed);
+
+  // Parse trip length preset and derive search nights
+  const tripLengthPreset = searchParams.get('tripLengthPreset');
+  const searchNights = tripLengthPreset && tripLengthPreset !== 'custom'
+    ? parseInt(tripLengthPreset)
+    : daysBetween(searchParamsObj.startDate, searchParamsObj.endDate);
 
   if (!searchParamsObj.origin || !searchParamsObj.destination || !searchParamsObj.startDate || !searchParamsObj.endDate) {
     return (
@@ -197,11 +203,12 @@ function ResultsPageRoute({
           </div>
 
           {/* Sort tab bar */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2 mb-6 flex-wrap">
             {[
               { key: 'cheapest', label: '💰 Cheapest' },
               { key: 'bestValue', label: '⭐ Best Value' },
               { key: 'leastStressful', label: '🟢 Least Stressful' },
+              { key: 'exactDuration', label: `📅 ${searchNights} Nights` },
             ].map(tab => (
               <button
                 key={tab.key}
@@ -229,6 +236,8 @@ function ResultsPageRoute({
               travelers={travelers}
               onRecommendationFound={handleRecommendationFound}
               preferenceWeights={Object.keys(preferenceWeights).length > 0 ? preferenceWeights : undefined}
+              sortMode={sortMode}
+              searchNights={searchNights}
             />
           </div>
 
@@ -282,6 +291,7 @@ export default function App() {
         endDate: params.endDate,
         adults: params.adults || 2,
         children: params.children || 0,
+        ...(params.tripLengthPreset !== undefined && { tripLengthPreset: params.tripLengthPreset }),
         ...(params.budgetVsComfort !== undefined && { budgetVsComfort: params.budgetVsComfort }),
         ...(params.earlyMorningOk !== undefined && { earlyMorningOk: params.earlyMorningOk }),
         ...(params.packedVsRelaxed !== undefined && { packedVsRelaxed: params.packedVsRelaxed }),
