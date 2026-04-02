@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import ChatInput from './ChatInput.jsx';
 import SearchForm from './SearchForm.jsx';
-import clsx from 'clsx';
 
 export default function LandingPage({ onSearch, loading, theme, onToggleTheme, onViewTimeline }) {
-  const [showTraditionalForm, setShowTraditionalForm] = useState(false);
+  const [showQuickSearch, setShowQuickSearch] = useState(false);
 
   return (
     <div
@@ -38,17 +37,21 @@ export default function LandingPage({ onSearch, loading, theme, onToggleTheme, o
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-12">
-        {/* Hero Section with Trip Assistant */}
-        <div className="w-full max-w-3xl">
+
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* PRIMARY FEATURE: TRIP ASSISTANT */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+
+        <div className="w-full max-w-4xl mb-20">
           {/* Status Badge */}
           <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-white/70 text-sm font-medium mb-8 mx-auto">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse inline-block" />
-            Powered by AI — Real-time flight & hotel prices
+            AI-Powered Trip Planning
           </div>
 
-          {/* Title */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white leading-tight tracking-tight mb-4 text-center">
-            Describe Your{' '}
+          {/* Main Hero Title */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white leading-tight tracking-tight mb-6 text-center">
+            Meet{' '}
             <span
               style={{
                 background: 'linear-gradient(90deg, #a5b4fc, #e879f9)',
@@ -57,120 +60,195 @@ export default function LandingPage({ onSearch, loading, theme, onToggleTheme, o
                 backgroundClip: 'text',
               }}
             >
-              Perfect Trip
+              Trip Assistant
             </span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-lg sm:text-xl mb-12 max-w-2xl leading-relaxed text-center mx-auto" style={{ color: 'rgba(255,255,255,0.65)' }}>
-            Just tell Trip Assistant what you want in natural language. We'll find the best flight & hotel combinations across flexible dates in real-time.
+            Your personal AI travel consultant. Plan perfect itineraries, detect conflicts, optimize for fatigue, and handle family dynamics—all before you book.
           </p>
 
-          {/* Trip Assistant Hero */}
-          <div className="w-full mb-8">
-            {!showTraditionalForm ? (
-              <ChatInput onSearchParsed={onSearch} loading={loading} />
-            ) : (
-              <SearchForm onSearch={onSearch} loading={loading} />
-            )}
-          </div>
-
-          {/* Toggle Button */}
-          <div className="text-center mb-8">
-            <button
-              onClick={() => setShowTraditionalForm(!showTraditionalForm)}
-              className="text-white/60 hover:text-white text-sm font-medium transition-colors flex items-center gap-2 mx-auto"
-            >
-              {showTraditionalForm ? '✓ Using Traditional Form' : 'Prefer Traditional Form?'}
-            </button>
-          </div>
-        </div>
-
-        {/* Secondary Features Section */}
-        <div className="w-full border-t border-white/10 mt-12 pt-12">
-          <h2 className="text-center text-white/50 text-sm font-semibold uppercase tracking-wider mb-8">Secondary Features</h2>
-
-          {/* Trip Assistant Demo Button */}
-          <div className="flex justify-center mb-16">
+          {/* Trip Assistant CTA Button */}
+          <div className="flex justify-center mb-12">
             <button
               onClick={onViewTimeline}
-              className="px-8 py-3 rounded-full text-sm font-semibold text-white border border-white/20 hover:border-white/40 hover:bg-white/10 transition-all"
+              className="px-8 py-4 rounded-xl text-lg font-semibold text-white"
+              style={{ background: 'linear-gradient(135deg, #a5b4fc, #e879f9)' }}
             >
-              ⏱️ See Trip Assistant in Action
+              🎬 Watch Trip Assistant in Action
             </button>
           </div>
-        </div>
 
-        {/* How It Works Section */}
-        <div className="w-full max-w-5xl mb-16">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">How It Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Step 1 */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
-              <div className="text-4xl mb-4">💬</div>
-              <h3 className="text-xl font-bold text-white mb-3">Describe</h3>
-              <p className="text-white/60 text-sm">
-                Tell Trip Assistant exactly what you want: destination, dates, budget, travelers. Natural language, no forms to fill.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
-              <div className="text-4xl mb-4">🔍</div>
-              <h3 className="text-xl font-bold text-white mb-3">Explore</h3>
-              <p className="text-white/60 text-sm">
-                Explore every flight + hotel combination across flexible dates in our visual heat map. See prices update in real-time.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
-              <div className="text-4xl mb-4">🎯</div>
-              <h3 className="text-xl font-bold text-white mb-3">Book</h3>
-              <p className="text-white/60 text-sm">
-                Find your perfect trip. One-click booking to Kiwi.com with your exact dates, flights, and hotel selected.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Why Use Trip Assistant Section */}
-        <div className="w-full max-w-5xl mb-12">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">Why Use Trip Assistant?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Trip Assistant Feature Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
             {/* Feature 1 */}
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
-              <div className="text-4xl mb-4">⚡</div>
-              <h3 className="text-lg font-bold text-white mb-2">Natural Language</h3>
+              <div className="text-5xl mb-4">📋</div>
+              <h3 className="text-xl font-bold text-white mb-3">Smart Itineraries</h3>
               <p className="text-white/60 text-sm">
-                No need to navigate dropdowns. Just describe your trip like you'd tell a friend.
+                Let Trip Assistant plan your entire journey. Flight schedules, hotel check-ins, activities—everything coordinated automatically.
               </p>
             </div>
 
             {/* Feature 2 */}
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
-              <div className="text-4xl mb-4">🌳</div>
-              <h3 className="text-lg font-bold text-white mb-2">Explore Branches</h3>
+              <div className="text-5xl mb-4">⚠️</div>
+              <h3 className="text-xl font-bold text-white mb-3">Conflict Detection</h3>
               <p className="text-white/60 text-sm">
-                Modify previous searches and track variations. Build up a tree of trip ideas.
+                Automatically catch flight mismatches, hotel booking conflicts, and timing issues before they become problems.
               </p>
             </div>
 
             {/* Feature 3 */}
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
-              <div className="text-4xl mb-4">💰</div>
-              <h3 className="text-lg font-bold text-white mb-2">Real-Time Prices</h3>
+              <div className="text-5xl mb-4">😴</div>
+              <h3 className="text-xl font-bold text-white mb-3">Fatigue Optimization</h3>
               <p className="text-white/60 text-sm">
-                Live prices from Kiwi.com across all date combinations. No outdated data.
+                Analyze flight durations, jet lag, and travel time. Trip Assistant warns you about tiring days and suggests rest days.
               </p>
             </div>
 
             {/* Feature 4 */}
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
-              <div className="text-4xl mb-4">🔄</div>
-              <h3 className="text-lg font-bold text-white mb-2">Smart Planning</h3>
+              <div className="text-5xl mb-4">👨‍👩‍👧‍👦</div>
+              <h3 className="text-xl font-bold text-white mb-3">Family Mode</h3>
               <p className="text-white/60 text-sm">
-                Get trip assistant help with itineraries, fatigue analysis, and conflict detection.
+                Special handling for family trips. Long flight warnings for kids, activity appropriateness checks, rest day planning.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECONDARY FEATURE: QUICK FLIGHT/HOTEL SEARCH */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+
+        <div className="w-full border-t border-white/20 pt-16 mb-16">
+          <div className="max-w-4xl mx-auto">
+            {/* Section Title */}
+            <div className="mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
+                Quick Search: Find Flights & Hotels
+              </h2>
+              <p className="text-center text-white/60 mb-8">
+                Just want to search? Use natural language or traditional form. (Trip Assistant brings everything together later.)
+              </p>
+
+              {/* Search Mode Toggle */}
+              <div className="flex justify-center mb-8">
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowQuickSearch(false)}
+                    className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                      !showQuickSearch
+                        ? 'bg-white text-indigo-600'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    💬 Natural Language
+                  </button>
+                  <button
+                    onClick={() => setShowQuickSearch(true)}
+                    className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                      showQuickSearch
+                        ? 'bg-white text-indigo-600'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    📋 Traditional Form
+                  </button>
+                </div>
+              </div>
+
+              {/* Search Input */}
+              <div className="w-full max-w-2xl mx-auto">
+                {!showQuickSearch ? (
+                  <ChatInput onSearchParsed={onSearch} loading={loading} />
+                ) : (
+                  <SearchForm onSearch={onSearch} loading={loading} />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* HOW TRIP OPTIMIZER WORKS */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+
+        <div className="w-full max-w-5xl mb-16">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">How Trip Optimizer Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Step 1 */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
+              <div className="text-4xl mb-4 font-bold text-indigo-400">1️⃣</div>
+              <h3 className="text-xl font-bold text-white mb-3">Search & Explore</h3>
+              <p className="text-white/60 text-sm">
+                Search flights & hotels with natural language or traditional form. See every price combination in our visual heat map.
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
+              <div className="text-4xl mb-4 font-bold text-indigo-400">2️⃣</div>
+              <h3 className="text-xl font-bold text-white mb-3">Get Trip Plan</h3>
+              <p className="text-white/60 text-sm">
+                Trip Assistant takes your search results and creates a complete itinerary. Every detail coordinated, every risk identified.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
+              <div className="text-4xl mb-4 font-bold text-indigo-400">3️⃣</div>
+              <h3 className="text-xl font-bold text-white mb-3">Review & Book</h3>
+              <p className="text-white/60 text-sm">
+                Review Trip Assistant's analysis, fix any issues it flags, then book everything in one click with confidence.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* WHY TRIP ASSISTANT SECTION */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+
+        <div className="w-full max-w-5xl mb-16">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">Why Trip Assistant?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Benefit 1 */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
+              <div className="text-4xl mb-4">😌</div>
+              <h3 className="text-lg font-bold text-white mb-2">Less Planning Stress</h3>
+              <p className="text-white/60 text-sm">
+                Stop manually coordinating flights, hotels, and activities. Let AI handle the complexity.
+              </p>
+            </div>
+
+            {/* Benefit 2 */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
+              <div className="text-4xl mb-4">⚡</div>
+              <h3 className="text-lg font-bold text-white mb-2">Catch Problems Early</h3>
+              <p className="text-white/60 text-sm">
+                Discover booking conflicts, logistical issues, and timing problems before you're committed.
+              </p>
+            </div>
+
+            {/* Benefit 3 */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
+              <div className="text-4xl mb-4">💰</div>
+              <h3 className="text-lg font-bold text-white mb-2">Real-Time Prices</h3>
+              <p className="text-white/60 text-sm">
+                Every search powered by live Kiwi.com prices. No guessing, no outdated data.
+              </p>
+            </div>
+
+            {/* Benefit 4 */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-colors">
+              <div className="text-4xl mb-4">🌍</div>
+              <h3 className="text-lg font-bold text-white mb-2">Perfect Every Time</h3>
+              <p className="text-white/60 text-sm">
+                From solo adventures to family trips, Trip Assistant adapts to your needs.
               </p>
             </div>
           </div>
@@ -179,10 +257,10 @@ export default function LandingPage({ onSearch, loading, theme, onToggleTheme, o
         {/* Feature Chips */}
         <div className="flex flex-wrap gap-2 justify-center mb-12">
           {[
-            { icon: '🗓️', text: 'Flexible dates' },
-            { icon: '✈️', text: 'Real prices' },
-            { icon: '🏨', text: 'Hotel options' },
-            { icon: '💬', text: 'Natural input' },
+            { icon: '🤖', text: 'AI Planning' },
+            { icon: '✈️', text: 'Real Prices' },
+            { icon: '🏨', text: 'Hotel Matching' },
+            { icon: '⚠️', text: 'Conflict Detection' },
           ].map(({ icon, text }) => (
             <span
               key={text}
@@ -194,9 +272,19 @@ export default function LandingPage({ onSearch, loading, theme, onToggleTheme, o
           ))}
         </div>
 
+        {/* Final CTA */}
+        <div className="mb-8">
+          <button
+            onClick={onViewTimeline}
+            className="px-8 py-4 rounded-xl text-lg font-semibold text-white border border-white/30 hover:border-white/60 hover:bg-white/10 transition-all"
+          >
+            ✨ See Trip Assistant Demo
+          </button>
+        </div>
+
         {/* Footer note */}
         <p className="text-center text-xs text-white/40">
-          Free to use · No account required · Works on desktop and mobile
+          Trip Assistant + Real-time Search = Perfect Trips · Free to use · No account required
         </p>
       </div>
     </div>
