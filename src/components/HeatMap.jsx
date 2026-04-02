@@ -26,6 +26,7 @@ export default function HeatMap({
   onToggleStar,
   minHotelStars,
   travelers,
+  onRecommendationFound,
 }) {
   const longPressTimer = useRef(null);
   const [flightData, setFlightData] = useState({});
@@ -219,6 +220,19 @@ export default function HeatMap({
 
         setAnxietyCache(newCache);
         setRecommendedCell(bestCell);
+
+        // Notify parent of recommendation
+        if (bestCell && onRecommendationFound) {
+          const bestData = cellGrid[bestCell];
+          const bestAnalysis = newCache[bestCell];
+          const [dep, ret] = bestCell.split('__');
+          onRecommendationFound({
+            departureDate: dep,
+            returnDate: ret,
+            cellData: bestData,
+            anxietyAnalysis: bestAnalysis,
+          });
+        }
       } catch (err) {
         console.error('Error analyzing trip anxiety:', err);
       } finally {
@@ -227,7 +241,7 @@ export default function HeatMap({
     };
 
     analyzeTop5Trips();
-  }, [searchParams, cellGrid]);
+  }, [searchParams, cellGrid, onRecommendationFound]);
 
   // Calculate min/max for color scaling
   const { minCost, maxCost, cheapestKey } = useMemo(() => {

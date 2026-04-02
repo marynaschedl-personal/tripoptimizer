@@ -10,7 +10,7 @@ import { useSearchTree } from './hooks/useSearchTree.js';
 import { DESTINATION_CITIES, ORIGIN_CITIES } from './data/mockData.js';
 
 // ─── Results Page ─────────────────────────────────────────────────────────────
-function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, onToggleStar, theme, onToggleTheme, onSelectSearch }) {
+function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, onToggleStar, theme, onToggleTheme, onSelectSearch, recommendation, onOpenRecommendedModal }) {
   const destCity   = DESTINATION_CITIES.find(c => c.code === searchParams.destination);
   const originCity = ORIGIN_CITIES.find(c => c.code === searchParams.origin);
   const travelers  = (searchParams.adults || 2) + (searchParams.children || 0);
@@ -31,6 +31,29 @@ function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, o
 
         {/* Main Content */}
         <div className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 py-8">
+          {/* Recommendation Notification */}
+          {recommendation && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-200 dark:border-purple-800 rounded-xl flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">✨</span>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    Trip Assistant recommends
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                    {recommendation.departureDate} departure — {recommendation.anxietyAnalysis?.anxietyLevel === 'not_stressful' ? '🟢 Not Stressful' : recommendation.anxietyAnalysis?.anxietyLevel === 'medium' ? '🟡 Medium' : '🔴 Very Stressful'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onOpenRecommendedModal}
+                className="flex-shrink-0 px-4 py-2 bg-white dark:bg-gray-900 text-indigo-600 dark:text-indigo-400 rounded-lg font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-indigo-200 dark:border-indigo-700"
+              >
+                See details ↗
+              </button>
+            </div>
+          )}
+
           {/* Search summary */}
           <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
             <div>
@@ -62,6 +85,7 @@ function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, o
               onToggleStar={onToggleStar}
               minHotelStars={3}
               travelers={travelers}
+              onRecommendationFound={onRecommendationFound}
             />
           </div>
 
@@ -84,6 +108,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
   const [starredCombos, setStarredCombos] = useState([]);
+  const [recommendation, setRecommendation] = useState(null);
   const { addSearch } = useSearchTree();
 
   // Sync dark class on <html>
@@ -103,6 +128,7 @@ export default function App() {
 
   const handleSearch = useCallback((params) => {
     setLoading(true);
+    setRecommendation(null);
     addSearch(params);
     setTimeout(() => {
       setSearchParams(params);
@@ -127,6 +153,20 @@ export default function App() {
       return [...prev.slice(-4), { departureDate, returnDate, cellData }];
     });
   }, []);
+
+  const handleRecommendationFound = useCallback((rec) => {
+    setRecommendation(rec);
+  }, []);
+
+  const handleOpenRecommendedModal = useCallback(() => {
+    if (recommendation) {
+      setSelectedCell({
+        departureDate: recommendation.departureDate,
+        returnDate: recommendation.returnDate,
+        cellData: recommendation.cellData,
+      });
+    }
+  }, [recommendation]);
 
   const isStarred = selectedCell
     ? starredCombos.some(
@@ -173,6 +213,9 @@ export default function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
           onSelectSearch={handleSelectSearch}
+          recommendation={recommendation}
+          onOpenRecommendedModal={handleOpenRecommendedModal}
+          onRecommendationFound={handleRecommendationFound}
         />
       )}
 
