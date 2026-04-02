@@ -208,7 +208,7 @@ function ResultsPageRoute({
               { key: 'cheapest', label: '💰 Cheapest' },
               { key: 'bestValue', label: '⭐ Best Value' },
               { key: 'leastStressful', label: '🟢 Least Stressful' },
-              { key: 'exactDuration', label: `📅 ${searchNights} Nights` },
+              // { key: 'exactDuration', label: `📅 ${searchNights} Nights` },  // TODO: Debug filtering
             ].map(tab => (
               <button
                 key={tab.key}

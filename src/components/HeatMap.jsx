@@ -474,10 +474,11 @@ export default function HeatMap({
                   const isCheapest = key === cheapestKey;
                   const normalized = data ? (data.totalCost - minCost) / costRange : 0;
                   const bgColor = data ? getColorForNormalized(normalized) : null;
-                  const isDifferentDuration = searchNights && nights !== searchNights;
+                  const isDifferentDuration = searchNights && typeof searchNights === 'number' ? nights !== searchNights : false;
+                  const shouldHideCell = sortMode === 'exactDuration' && isDifferentDuration;
 
                   // Filter cells when exactDuration tab is selected
-                  if (sortMode === 'exactDuration' && isDifferentDuration) {
+                  if (shouldHideCell) {
                     return (
                       <td key={ret} className="p-1.5 border-b border-r border-gray-100 dark:border-gray-700">
                         <div className="w-[88px] h-[60px] rounded-lg bg-gray-100 dark:bg-gray-800 opacity-20" />
