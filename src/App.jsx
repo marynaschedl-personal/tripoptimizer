@@ -1,110 +1,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import Header from './components/Header.jsx';
 import SearchForm from './components/SearchForm.jsx';
+import LandingPage from './components/LandingPage.jsx';
 import HeatMap from './components/HeatMap.jsx';
 import DetailModal from './components/DetailModal.jsx';
 import TripAssistantDemo from './pages/TripAssistantDemo.jsx';
-import ChatInput from './components/ChatInput.jsx';
 import SearchTree from './components/SearchTree.jsx';
 import { useSearchTree } from './hooks/useSearchTree.js';
 import { DESTINATION_CITIES, ORIGIN_CITIES } from './data/mockData.js';
-
-// ─── Landing Page ─────────────────────────────────────────────────────────────
-function LandingPage({ onSearch, loading, theme, onToggleTheme, onViewTimeline }) {
-  return (
-    <div
-      className="min-h-screen relative overflow-hidden flex flex-col"
-      style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 45%, #24243e 100%)' }}
-    >
-      {/* Ambient orbs */}
-      <div
-        className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-20 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #818cf8, transparent 70%)', filter: 'blur(60px)', top: '-80px', left: '-80px' }}
-      />
-      <div
-        className="absolute rounded-full opacity-15 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #a78bfa, transparent 70%)', filter: 'blur(80px)', width: '600px', height: '600px', bottom: '-100px', right: '-100px' }}
-      />
-
-      {/* Top bar */}
-      <div className="relative z-10 flex items-center justify-between px-6 py-5">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl" role="img" aria-label="airplane">✈️</span>
-          <span className="text-xl font-extrabold text-white tracking-tight">TripOptimizer</span>
-        </div>
-        <button
-          onClick={onToggleTheme}
-          aria-label="Toggle dark mode"
-          className="p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors"
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
-      </div>
-
-      {/* Hero */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-white/70 text-sm font-medium mb-8">
-          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse inline-block" />
-          Live mock data — Phase 2 connects real APIs
-        </div>
-
-        <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white leading-tight tracking-tight mb-5 max-w-4xl">
-          Find Your{' '}
-          <span
-            style={{
-              background: 'linear-gradient(90deg, #a5b4fc, #e879f9)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            Perfect Trip
-          </span>
-        </h1>
-
-        <p className="text-lg sm:text-xl mb-10 max-w-xl leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
-          Compare <strong style={{ color: 'rgba(255,255,255,0.8)' }}>every</strong> flight + hotel combination
-          across flexible dates in one visual heat map.
-        </p>
-
-        {/* Feature chips */}
-        <div className="flex flex-wrap gap-2 justify-center mb-10">
-          {[
-            { icon: '🗓️', text: 'Flexible date range' },
-            { icon: '✈️', text: '10 airlines' },
-            { icon: '🏨', text: '15 hotel options' },
-            { icon: '💰', text: 'Best price finder' },
-          ].map(({ icon, text }) => (
-            <span
-              key={text}
-              className="px-4 py-2 rounded-full text-sm font-medium"
-              style={{ color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.07)' }}
-            >
-              {icon} {text}
-            </span>
-          ))}
-        </div>
-
-        {/* Timeline Feature */}
-        <div className="mb-8">
-          <button
-            onClick={onViewTimeline}
-            className="px-6 py-2 rounded-full text-sm font-semibold text-white"
-            style={{ background: 'linear-gradient(135deg, #a5b4fc, #e879f9)', border: 'none' }}
-          >
-            ⏱️ Try Trip Assistant (Demo)
-          </button>
-        </div>
-
-        {/* Dual-input layout: Chat + Form side-by-side */}
-        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up px-2">
-          <ChatInput onSearchParsed={onSearch} loading={loading} />
-          <SearchForm onSearch={onSearch} loading={loading} />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── Results Page ─────────────────────────────────────────────────────────────
 function ResultsPage({ searchParams, onNewSearch, onSelectCell, starredCombos, onToggleStar, theme, onToggleTheme, onSelectSearch }) {

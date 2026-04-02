@@ -92,7 +92,7 @@ export default function ChatInput({ onSearchParsed, loading = false }) {
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-lg overflow-hidden">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -103,13 +103,20 @@ export default function ChatInput({ onSearchParsed, loading = false }) {
           >
             <div
               className={clsx(
-                'max-w-xs px-4 py-2 rounded-lg whitespace-pre-wrap text-sm',
+                'max-w-xs px-4 py-3 rounded-lg whitespace-pre-wrap text-sm',
                 msg.role === 'user'
-                  ? 'bg-indigo-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                  ? 'bg-indigo-500 text-white rounded-br-none shadow-sm'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-none shadow-sm'
               )}
             >
-              {msg.text}
+              <div>{msg.text}</div>
+              {msg.confidence && (
+                <div className="text-xs mt-2 opacity-75 flex items-center gap-1">
+                  {msg.confidence === 'high' && '🎯 High confidence'}
+                  {msg.confidence === 'medium' && '🤔 Partial confidence'}
+                  {msg.confidence === 'low' && '❓ Low confidence'}
+                </div>
+              )}
             </div>
           </div>
         ))}
