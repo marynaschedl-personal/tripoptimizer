@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import clsx from 'clsx';
-import { RefreshCw, AlertCircle, Zap } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import {
   getCellData,
   generateDateRange,
@@ -8,7 +8,8 @@ import {
   daysBetween,
   getColorForNormalized,
 } from '../data/mockData.js';
-import { batchFetchFlightPrices, clearFlightCache, getCacheAgeMinutes } from '../api/kiwiApi.js';
+// API calls disabled - using mock data only
+// import { batchFetchFlightPrices, clearFlightCache, getCacheAgeMinutes } from '../api/kiwiApi.js';
 import { analyzeTrip } from '../services/anxietyAnalyzer.js';
 import AnxietyBadge from './AnxietyBadge.jsx';
 import RecommendationBadge from './RecommendationBadge.jsx';
@@ -45,7 +46,7 @@ export default function HeatMap({
   const [isLoadingFlights, setIsLoadingFlights] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState({ completed: 0, total: 0 });
   const [error, setError] = useState(null);
-  const [useRealPrices, setUseRealPrices] = useState(true);
+  const [useRealPrices, setUseRealPrices] = useState(false); // Disabled - using mock data only
   const [dataFreshness, setDataFreshness] = useState(null);
   const [usingFallback, setUsingFallback] = useState(false);
 
@@ -341,18 +342,10 @@ export default function HeatMap({
           <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
             <span className="text-indigo-600 dark:text-indigo-400 font-bold">{totalCombinations}</span> combinations found
           </p>
-          {useRealPrices && !usingFallback && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300">
-              <Zap size={12} />
-              LIVE PRICES
-            </span>
-          )}
-          {usingFallback && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
-              <AlertCircle size={12} />
-              Estimated prices
-            </span>
-          )}
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
+            <AlertCircle size={12} />
+            Mock data
+          </span>
           {analyzingTop5 && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 animate-pulse">
               <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
@@ -361,66 +354,8 @@ export default function HeatMap({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          {dataFreshness && Object.keys(dataFreshness).length > 0 && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              Updated {Math.min(...Object.values(dataFreshness))}m ago
-            </span>
-          )}
-          <button
-            onClick={handleRefreshPrices}
-            disabled={isLoadingFlights}
-            className={clsx(
-              'p-2 rounded-lg transition-colors',
-              isLoadingFlights
-                ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/60'
-            )}
-            aria-label="Refresh prices"
-            title="Refresh flight prices"
-          >
-            <RefreshCw size={16} className={isLoadingFlights ? 'animate-spin' : ''} />
-          </button>
-        </div>
       </div>
 
-      {/* Loading progress */}
-      {isLoadingFlights && (
-        <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-3 flex items-center gap-3">
-          <div className="animate-spin">
-            <RefreshCw size={16} className="text-blue-600 dark:text-blue-400" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-              Searching real flight prices...
-            </p>
-            <div className="mt-1 h-2 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-blue-500 transition-all duration-300"
-                style={{ width: `${loadingProgress.total > 0 ? (loadingProgress.completed / loadingProgress.total) * 100 : 0}%` }}
-              />
-            </div>
-            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-              {loadingProgress.completed} / {loadingProgress.total} combinations
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Error alert */}
-      {error && (
-        <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-3 flex items-start gap-3">
-          <AlertCircle size={16} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-red-700 dark:text-red-300">
-              Could not load real prices
-            </p>
-            <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-              {error}. Using estimated prices instead.
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Info */}
       <p className="text-xs text-gray-400 dark:text-gray-500">
